@@ -14,16 +14,20 @@ const pages =[
         title: "Products",
         icon:"coffee"
     },
-
     {
         page:"transactions",
         title:"Transaction",
         icon:"receipt"
     },
     {
+        page:"other",
+        title:"Others",
+        icon:"dots-horizontal"
+    },
+    {
         page:"settings",
         title:'Settings',
-        icon:'settings-helper'
+        icon:'wrench'
 
     },
 ]
@@ -57,7 +61,7 @@ export default function RootLayout() {
                         title:item.title,
                         // headerTitleAlign:'center',
                         drawerIcon:({color}) => <MaterialCommunityIcons size={28} name={item.icon} color={color}/>,
-                            drawerBarShowLabel:pages.length >  4 ? false:true
+                            drawerBarShowLabel:pages.length >  5 ? false:true
                         }}
                         />
                         
