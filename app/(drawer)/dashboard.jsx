@@ -34,18 +34,16 @@ function Dashboard() {
     ],
   };
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const transactionRes = await retrieveTransactions();
-      setTransactions(transactionRes);
-      console.log(transactionRes);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-    }
-  };
-  fetchData(); 
-}, []);
-
+      retrieveTransactions()
+        .then((transactionRes) => {
+ 
+          setTransactions(transactionRes.data);
+          console.log('Transactions:', transactionRes);
+        })
+        .catch((error) => {
+          console.error('Error fetching transactions:', error);
+        });
+    }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -121,20 +119,23 @@ function Dashboard() {
                 
               />
             </View>
-           
       <View style={styles.sideContainer}>
         <View style={styles.revcontainer}>
           <Text style={styles.title}>Transaction History</Text>
-          {transactions.map((item) => (
-            <View key={item.id} style={styles.row}>
-              <Text style={styles.cell}>Invoice #: {item.invoice_number}</Text>
-              <Text style={styles.cell}>Total: ₱{item.total}</Text>
-            </View>
-          ))}
+              <ScrollView>
+                {transactions.map((item) => (
+                  <View key={item.id} style={styles.row}>
+                    <Text style={styles.cell}>Invoice #:{item.invoice_number}</Text>
+                    <Text style={styles.cell}>Total: ₱{item.total}</Text>
+                  </View>
+                ))}
+              </ScrollView>
         </View>
               
               <View style={styles.revcontainer}>
                 <Text style={styles.title}>Daily Revenue Summary</Text>
+                <ScrollView>
+                </ScrollView>
               </View>
     </View>
     </ScrollView>

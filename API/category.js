@@ -13,7 +13,7 @@ export const retrieveCategory = async () => {
 
 
 export const storeCategory = async (input) => {
-    const res = await fetch(`${URL}category`,
+    const res = await fetch(`${URL}/category`,
         {
             method:'POST',
             headers:{
@@ -27,7 +27,7 @@ export const storeCategory = async (input) => {
 
 
 export const patchcategory = async (id,body) =>{
-    const res = await fetch(`${URL}category/${id}?_method=PATCH`,
+    const res = await fetch(`${URL}/category/${id}?_method=PATCH`,
         {
             method:'POST',
             headers:{
@@ -40,7 +40,7 @@ export const patchcategory = async (id,body) =>{
 };
 
 export const destroycategory = async (id) => {
-    const res = await fetch(`${URL}category/${id}?_method=DELETE`,
+    const res = await fetch(`${URL}/category/${id}?_method=DELETE`,
         {
             method:'POST',
             headers:{
