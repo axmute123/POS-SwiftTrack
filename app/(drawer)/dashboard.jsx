@@ -1,10 +1,12 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import { View, Text, StyleSheet, ScrollView } from 'react-native'
 import { BarChart, PieChart, LineChart } from 'react-native-chart-kit'
 import { router } from 'expo-router'
 import  { retrieveTransactions } from '../../API/transactions'
 
 function Dashboard() {
+  const [ transactions, setTransactions ] = useState([]);
+  
   const hourlySalesData = {
     labels : ['9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM'],
     datasets: [{
@@ -31,6 +33,19 @@ function Dashboard() {
       },
     ],
   };
+  useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const transactionRes = await retrieveTransactions();
+      setTransactions(transactionRes);
+      console.log(transactionRes);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    }
+  };
+  fetchData(); 
+}, []);
+
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -106,11 +121,18 @@ function Dashboard() {
                 
               />
             </View>
+           
       <View style={styles.sideContainer}>
-              <View style={styles.revcontainer}>
-                <Text style={styles.title}>Transaction History</Text>
-              </View>
-
+        <View style={styles.revcontainer}>
+          <Text style={styles.title}>Transaction History</Text>
+          {transactions.map((item) => (
+            <View key={item.id} style={styles.row}>
+              <Text style={styles.cell}>Invoice #: {item.invoice_number}</Text>
+              <Text style={styles.cell}>Total: ₱{item.total}</Text>
+            </View>
+          ))}
+        </View>
+              
               <View style={styles.revcontainer}>
                 <Text style={styles.title}>Daily Revenue Summary</Text>
               </View>

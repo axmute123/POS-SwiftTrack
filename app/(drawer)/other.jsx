@@ -1,5 +1,5 @@
 import React, {useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator} from 'react-native';
 import { retrieveCategory } from '../../API/category'
 import { retrieveBundles } from '../../API/bundle' 
 import { retrieveSizes } from '../../API/size'
@@ -13,6 +13,7 @@ export default function Other() {
   const [ bundles, setBundles] = useState([]);
   const [ addons, setAddOns] = useState([]);
   const [ sizes,  setSizes ] = useState([]);
+  const [ loading, setLoading ] = useState(true);
 
 
   useEffect(()=>{
@@ -29,19 +30,31 @@ export default function Other() {
        
       }catch (error){
         console.error('Error Fetching Data', error);
+      }finally{
+        setLoading(false);
       }
     };
     fetchData();
 
   }, [])
+
+   if (loading) {
+      return (
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color="#1e3a8a" />
+        </View>
+      );
+    }
   return (
+
+  
     <View style={styles.container}>
       
       <View style={styles.box}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.boxText}>Category</Text>
            {categories.map((item)=>(
-            <Text key={item.id}> {item.name}</Text>
+            <Text key={item.id} style={{fontStyle:'italic'}}> {item.name}</Text>
            ))}
           
         </ScrollView>
@@ -52,7 +65,7 @@ export default function Other() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.boxText}>Bundle</Text>
           {bundles.map((item)=>(
-            <Text key={item.id}> {item.name}</Text>
+            <Text key={item.id} style={{fontStyle:'italic'}}> {item.name}</Text>
            ))}
           
         </ScrollView>
@@ -63,7 +76,7 @@ export default function Other() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.boxText}>AddOns</Text>
           {addons.map((item)=>(
-            <Text key={item.id}> {item.name}</Text>
+            <Text key={item.id} style={{fontStyle:'italic'}}> {item.name}</Text>
            ))}
          
         </ScrollView>
@@ -73,7 +86,7 @@ export default function Other() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.boxText}>Size</Text>
           {sizes.map((item)=>(
-            <Text key={item.id}> {item.name}</Text>
+            <Text key={item.id} style={{fontStyle:'italic'}}> {item.name}</Text>
            ))}
           
         </ScrollView>
@@ -107,9 +120,14 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   boxText: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '600',
     marginBottom: 10,
     
   },
+  loaderBox:{
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center '
+  }
 });

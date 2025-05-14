@@ -4,7 +4,7 @@ import { View, StyleSheet, Text } from 'react-native';
 export default function Add_Category() {
   return (
     <View>
-        <Text>add_category</Text>
+        <Text>add_categoyr</Text>
     </View>
   )
 }

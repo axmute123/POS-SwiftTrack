@@ -12,7 +12,7 @@ export const retrieveAddOns = async () => {
 };
 
 export const storeAddons = async (input) => {
-    const res = await fetch(`${URL}addons`,
+    const res = await fetch(`${URL}/addons`,
         {
             method:'POST',
             headers:{

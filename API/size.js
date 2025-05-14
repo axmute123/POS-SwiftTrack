@@ -13,7 +13,7 @@ export const retrieveSizes = async () => {
 };
 
 export const storeSizes = async (input) => {
-    const res = await fetch(`${URL}sizes`,
+    const res = await fetch(`${URL}/sizes`,
         {
             method:'POST',
             headers:{
