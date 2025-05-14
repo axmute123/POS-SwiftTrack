@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  Pressable,
-  Image,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { View, StyleSheet, Text, Pressable, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { retrieveProducts } from '../../API/product';
 import { router } from 'expo-router';
 
@@ -60,7 +52,6 @@ function Products() {
           <Text style={styles.headerText}>Price</Text>
         </View>
 
-        {/* Table Rows */}
         {loading ? (
           <ActivityIndicator size="large" color="#e11d48" style={styles.loader} />
         ) : products.length === 0 ? (

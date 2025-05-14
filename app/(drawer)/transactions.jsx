@@ -54,9 +54,9 @@ const Transactions = () => {
             <Text style={styles.cell}>
               Payment Method: {getPaymentMethodName(item.payment_method)}
             </Text>
-            <Text style={styles.cell}>Total: ${item.total}</Text>
-            <Text style={styles.cell}>Cash: ${item.cash}</Text>
-            <Text style={styles.cell}>Change: ${item.change}</Text>
+            <Text style={styles.cell}>Total: ₱{item.total}</Text>
+            <Text style={styles.cell}>Cash: ₱{item.cash}</Text>
+            <Text style={styles.cell}>Change: ₱{item.change}</Text>
           </View>
         ))}
       </ScrollView>
