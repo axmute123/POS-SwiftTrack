@@ -1,7 +1,7 @@
 import { URL } from './connection';
 
 export const retrieveProducts = async () => {
-    const res = await fetch(`${URL}products`,
+    const res = await fetch(`${URL}/products`,
     {
         method: 'GET',
         headers:{

@@ -3,6 +3,10 @@ import { View , Text } from 'react-native'
 
 export default function other() {
   return (
-    <View>other</View>
+    <View>
+      <Text>
+        other
+        </Text>
+    </View>
   )
 }

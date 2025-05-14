@@ -1,7 +1,7 @@
 import { URL } from './connection'
 
 export const retrieveSizes = async () => {
-    const res = await fetch(`${URL}sizes`,
+    const res = await fetch(`${URL}/sizes`,
         {
             method:'GET',
             headers:{
