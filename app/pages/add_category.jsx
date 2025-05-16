@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TextInput, Pressable, Alert } from 'react-native';
 import { storeCategory } from '@/API/category';
+import { router } from 'expo-router';
 
 export default function Add_Category() {
   const [category, setCategory] = useState('');
@@ -18,6 +19,8 @@ export default function Add_Category() {
     }catch(error){
       console.error('Error storing category', error);
       Alert.alert('Error', 'Failed to store category')
+    }finally{
+      router.replace('/(drawer)/products');
     }
   };
 

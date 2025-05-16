@@ -1,30 +1,48 @@
 import React, {useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Pressable, ActivityIndicator } from 'react-native';
-import { storeSizes } from '../../API/size';
+import { storeProducts } from '@/API/product';
+import { retrieveCategory } from '@/API/category';
+import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
 
-export default function AddAddOns() {
-  const [name, setName ] = useState('');
+export default function AddProducts() {
+  const [ name, setName ] = useState('');
   const [ price, setPrice ] = useState('');
+  const [ categories, setCategories ] = useState([]);
+  const [ selectedCategory, setSelectedCategory ] = useState(null);
   const [ loading , setLoading ] = useState(false);
 
-  const handleaddSizes = async () => {
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await retrieveCategory();
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Failed to load categories', error);
+        Alert.alert('Error', 'Failed to load categories');
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleaddProducts = async () => {
     if(!name || !price ) {
       Alert.alert('Validation Error', 'Please fill in all fields');
       return;
     }
     try{
-      const result = await storeSizes({
+      const result = await storeProducts({
         name: name,
-        price: price
+        price: price,
+        category_id:selectedCategory
       });
-      Alert.alert('Success', 'Size saved succesfully');
+      Alert.alert('Success', 'Products saved succesfully');
       setName('');
       setPrice('');
-      console.log("Saved size", result);
+      console.log("Saved Products", result);
     }catch(error){
       console.error("API Error", error);
-      Alert.alert('Error', 'Failed to save size');
+      Alert.alert('Error', 'Failed to save products');
     }finally{
       setLoading(false);
       router.replace('/(drawer)/products');
@@ -32,7 +50,7 @@ export default function AddAddOns() {
 };
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Add Sizes</Text>
+      <Text style={styles.title}>Add Products</Text>
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Name</Text>
@@ -53,6 +71,22 @@ export default function AddAddOns() {
           value={price}
           onChangeText={setPrice}
         />
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Category</Text>
+        <View style={styles.pickerWrapper}>
+          <Picker 
+            selectedValue={selectedCategory}
+            onValueChange={(itemValue)=>setSelectedCategory(itemValue)}
+            style={styles.picker}
+          >
+          <Picker.Item label="Select a category..." value={null} enabled={false} />
+           {categories.map((cat) => (
+              <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
+            ))}
+          </Picker>
+        </View>
+      </View>
+
       </View>
         <Pressable
             style={({ pressed }) => [
@@ -60,13 +94,13 @@ export default function AddAddOns() {
               pressed && { opacity: 0.8 },
               loading && { backgroundColor: '#a0c4ff' } 
             ]}
-            onPress={handleaddSizes}
+            onPress={handleaddProducts}
             disabled={loading} 
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Add Size</Text>
+              <Text style={styles.buttonText}>Add Product</Text>
             )}
         </Pressable>
     </View>
@@ -121,5 +155,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+  },
+  picker: {
+    height: 45,
+    width: '100%',
   },
 });

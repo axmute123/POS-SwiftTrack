@@ -9,6 +9,7 @@ export default function RootLayout() {
         <Stack.Screen name="pages/add_bundles" options={{ title:"Add Bundle"}} />
         <Stack.Screen name="pages/add_sizes" options={{ title:"Add Size"}} />
         <Stack.Screen name="pages/add_addons" options={{ title:"Add-Ons"}} />
+        <Stack.Screen name="pages/add_products" options={{ title:"Add Product"}} />
         
         <Stack.Screen name="(drawer)" options={{headerShown: false}}/>
     </Stack>

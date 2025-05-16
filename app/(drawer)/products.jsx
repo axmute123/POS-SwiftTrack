@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Pressable, Image, ScrollView, ActivityIndicator } from 'react-native';
-import { retrieveProducts } from '../../API/product';
+import { View, StyleSheet, Text, Pressable, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { retrieveProducts, destroyProducts } from '../../API/product';
 import { router } from 'expo-router';
+import { FAB } from 'react-native-paper';
 
 function Products() {
   const [products, setProducts] = useState([]);
@@ -23,6 +24,35 @@ function Products() {
 
     fetchProducts();
   }, []);
+
+  const confirmDelete = (productId) => {
+    Alert.alert(
+      'Delete Product',
+      'Are you sure you want to delete this product?',
+      [
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: () => handleDestroyProduct(productId),
+        },
+      ]
+    );
+  };
+
+  const handleDestroyProduct = async (productId) => {
+    try {
+      await destroyProducts(productId);
+      setProducts((prev) => prev.filter((item) => item.id !== productId));
+    } catch (err) {
+      console.error('Failed to delete product:', err);
+      Alert.alert('Error', 'Unable to delete product. Please try again.');
+    }
+  };
+
 
   return (
     <ScrollView style={styles.container}>
@@ -58,22 +88,29 @@ function Products() {
           <Text style={styles.emptyText}>No products available.</Text>
         ) : (
           products.map((item) => (
-            <View key={item.id} style={styles.tableRow}>
-              <Text style={styles.rowText}>{item.category?.name || 'N/A'}</Text>
-              <Text style={styles.rowText}>{item.name}</Text>
-              <Image
-                source={{
-                  uri: item.image || 'N/A',
-                }}
-                style={styles.productImage}
-                resizeMode="cover"
-              />
-              <Text style={styles.rowText}>₱{item.price}</Text>
-            </View>
-          ))
+              <Pressable
+                    key={item.id}
+                    style={styles.tableRow}
+                    onPress={() => router.push({ pathname: '/pages/update_product', params: { id: item.id } })
+                  }
+                    onLongPress={() => confirmDelete(item.id)}
+                  >
+                    <Text style={styles.rowText}>{item.category?.name || 'N/A'}</Text>
+                    <Text style={styles.rowText}>{item.name}</Text>
+                    <Image
+                      source={{
+                        uri: item.image || 'N/A',
+                      }}
+                      style={styles.productImage}
+                      resizeMode="cover"
+                    />
+                    <Text style={styles.rowText}>₱{item.price}</Text>
+                  </Pressable>
+                ))
         )}
-      </View>
+      </View>   
     </ScrollView>
+    
   );
 }
 

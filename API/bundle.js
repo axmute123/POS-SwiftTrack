@@ -13,11 +13,11 @@ export const retrieveBundles = async () => {
 
 
 export const storeBundles = async (input) => {
-    const res = await fetch(`${URL}bundle`,
+    const res = await fetch(`${URL}/bundle`,
         {
             method:'POST',
             headers:{
-                Accept:'application.json',
+                Accept:'application/json',
                 'Content-Type':'application/json'
             },
             body: JSON.stringify(input)
@@ -27,7 +27,7 @@ export const storeBundles = async (input) => {
 
 
 export const patchBundle = async (id,body) =>{
-    const res = await fetch(`${URL}bundle/${id}?_method=PATCH`,
+    const res = await fetch(`${URL}/bundle/${id}?_method=PATCH`,
         {
             method:'POST',
             headers:{

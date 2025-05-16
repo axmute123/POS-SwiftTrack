@@ -1,6 +1,7 @@
 import React, {useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-native';
 import { storeAddons } from '@/API/addons';
+import { router } from 'expo-router';
 
 export default function AddAddOns() {
 
@@ -27,6 +28,7 @@ export default function AddAddOns() {
             Alert.alert('Error', 'Failed to save Addons');
           }finally{
             setLoading(false);
+            router.replace('/(drawer)/products');
           }
       };
 

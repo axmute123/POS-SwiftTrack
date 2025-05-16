@@ -14,7 +14,7 @@ export const retrieveProducts = async () => {
 
 
 export const storeProducts = async (input) => {
-    const res = await fetch(`${URL}products`,
+    const res = await fetch(`${URL}/products`,
     {
         method:'POST',
         headers:{
@@ -27,7 +27,7 @@ export const storeProducts = async (input) => {
 };
 
 export const patchProducts = async (id,body) => {
-    const res = await fetch(`${URL}products/${id}?_method=PATCH`,
+    const res = await fetch(`${URL}/products/${id}?_method=PATCH`,
         {
             method: 'POST',
             headers:{
@@ -40,7 +40,7 @@ export const patchProducts = async (id,body) => {
 };
 
 export const destroyProducts = async (id) => {
-    const res = await fetch(`${URL}products/${id}?_method=DELETE`,
+    const res = await fetch(`${URL}/products/${id}?_method=DELETE`,
     {
         method: 'POST',
         headers:{

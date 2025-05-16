@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { retrieveTransactions } from '../../API/transactions';
 import { getpaymentMethod } from '../../API/payment_method';
 
@@ -28,12 +28,13 @@ const Transactions = () => {
   };
 
   if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Loading Transactions...</Text>
-      </View>
-    );
-  }
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#d92e50" />
+      <Text style={styles.loadingText}>Loading Transactions...</Text>
+    </View>
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -91,6 +92,18 @@ const styles = StyleSheet.create({
   headerText: {
     fontWeight: 'bold',
   },
+  loadingContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: '#f7f7f7',
+},
+loadingText: {
+  marginTop: 10,
+  fontSize: 16,
+  color: '#333',
+},
+
 });
 
 export default Transactions;

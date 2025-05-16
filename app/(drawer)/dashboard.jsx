@@ -4,6 +4,7 @@ import { BarChart, PieChart, LineChart } from 'react-native-chart-kit'
 import { router } from 'expo-router'
 import  { retrieveTransactions } from '../../API/transactions'
 
+
 function Dashboard() {
   const [ transactions, setTransactions ] = useState([]);
   
@@ -176,7 +177,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     height: 200, 
-  }
+  },
+  
 });
 
 
