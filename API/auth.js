@@ -1,3 +1,5 @@
+import { URL } from './connection'
+
 export const checkToken = async (token) => {
   const res = await fetch(`${URL}/token`, {
     headers: {
