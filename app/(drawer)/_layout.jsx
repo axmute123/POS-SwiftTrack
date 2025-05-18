@@ -1,8 +1,9 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Drawer } from "expo-router/drawer";
-import { View, Text, Pressable } from "react-native";
-import { router } from "expo-router"; 
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { router } from "expo-router";
+import { DrawerContentScrollView, DrawerItemList, DrawerItem } from "@react-navigation/drawer";
 
 const pages = [
   {
@@ -25,17 +26,34 @@ const pages = [
     title: "Others",
     icon: "dots-horizontal",
   },
-  {
-    page: "settings",
-    title: "Settings",
-    icon: "wrench",
-  },
 ];
+
+function CustomDrawerContent(props) {
+  return (
+    <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <DrawerItemList {...props} />
+      </View>
+
+      <View style={styles.logoutContainer}>
+        <DrawerItem
+          label="Logout"
+          onPress={() => {
+            router.replace("/"); 
+          }}
+          icon={({ color, size }) => (
+            <MaterialCommunityIcons name="logout" color={color} size={size} />
+          )}
+        />
+      </View>
+    </DrawerContentScrollView>
+  );
+}
 
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Drawer>
+      <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
         {pages.map((item, index) => (
           <Drawer.Screen
             key={item.page + index}
@@ -76,10 +94,7 @@ export default function RootLayout() {
                         onPress={() => router.push("../pages/add_products")}
                         style={{ marginRight: 20 }}
                       >
-                        <MaterialCommunityIcons
-                          name="cart-plus"
-                          size={28}
-                        />
+                        <MaterialCommunityIcons name="cart-plus" size={28} />
                       </Pressable>
                     ),
                   }
@@ -91,3 +106,11 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  logoutContainer: {
+    borderTopWidth: 1,
+    borderTopColor: "#ccc",
+    paddingBottom: 10,
+  },
+});

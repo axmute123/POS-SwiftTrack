@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator 
 import { LinearGradient } from "expo-linear-gradient";
 import { login } from "../API/auth";  
 import { router } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
@@ -24,25 +25,29 @@ export default function LoginScreen() {
       username,
       password,
     };
-
+    console.log(body)
     try {
       const response = await login(body);  
-      if (response.token) {
+      console.log(response)
+
+      if (response.ok) {
         router.replace("/dashboard");
+// await AsyncStorage.setItem('toke', response);
       } else {
         setLoginMsg("Invalid username or password.");
+        console.log(response.message)
       }
     } catch (error) {
       console.error("Login error:", error);
       setLoginMsg("An error occurred. Please try again.");
     } finally {
-      setLoading(false);
+      setLoading(true);
     }
   };
 
   return (
     <LinearGradient
-      colors={["gray", "#e11d48", "#ec4899", "#a21caf"]}  
+      colors={["#808080", "#e11d48", "#ec4899", "#a21caf"]}  
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.container}

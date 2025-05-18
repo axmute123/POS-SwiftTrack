@@ -23,14 +23,14 @@ export const logout = async (token) => {
   return await res.json();
 };
 
-export const login = async (body, token) => {
+export const login = async (body) => {
   const res = await fetch(`${URL}/login`, {
     method: "POST",
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${token}`,
+      'Content-Type':'application/json'
     },
-    body,
+    body:JSON.stringify(body),
   });
   return await res.json();
 };
