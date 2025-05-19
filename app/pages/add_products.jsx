@@ -79,7 +79,7 @@ export default function AddProducts() {
             onValueChange={(itemValue)=>setSelectedCategory(itemValue)}
             style={styles.picker}
           >
-          <Picker.Item label="Select a category..." value={null} enabled={false} />
+          <Picker.Item label="Select a category..." value={null} />
            {categories.map((cat) => (
               <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
             ))}

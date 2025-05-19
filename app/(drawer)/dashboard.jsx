@@ -134,7 +134,7 @@ function Dashboard() {
         </View>
               
               <View style={styles.revcontainer}>
-                <Text style={styles.title}>Daily Revenue Summary</Text>
+                <Text style={styles.title}>Total of Sales Today</Text>
                 <ScrollView>
                 </ScrollView>
               </View>

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Pressable, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, Text, Pressable, Image, ScrollView, ActivityIndicator, Modal, } from 'react-native';
 import { retrieveProducts, destroyProducts } from '../../API/product';
 import { router } from 'expo-router';
-import { FAB } from 'react-native-paper';
 
 function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -25,38 +27,27 @@ function Products() {
     fetchProducts();
   }, []);
 
-  const confirmDelete = (productId) => {
-    Alert.alert(
-      'Delete Product',
-      'Are you sure you want to delete this product?',
-      [
-        {
-          text: 'No',
-          style: 'cancel',
-        },
-        {
-          text: 'Yes',
-          style: 'destructive',
-          onPress: () => handleDestroyProduct(productId),
-        },
-      ]
-    );
-  };
-
   const handleDestroyProduct = async (productId) => {
     try {
       await destroyProducts(productId);
       setProducts((prev) => prev.filter((item) => item.id !== productId));
     } catch (err) {
       console.error('Failed to delete product:', err);
-      Alert.alert('Error', 'Unable to delete product. Please try again.');
     }
   };
 
+  const openActionModal = (product) => {
+    setSelectedProduct(product);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedProduct(null);
+  };
 
   return (
     <ScrollView style={styles.container}>
-
       <View style={styles.navContainer}>
         <Pressable style={styles.item} onPress={() => router.push('../../pages/add_category')}>
           <Text>Category</Text>
@@ -72,9 +63,8 @@ function Products() {
         </Pressable>
       </View>
 
-
+    
       <View style={styles.tableContainer}>
-      
         <View style={styles.tableHeader}>
           <Text style={styles.headerText}>Category</Text>
           <Text style={styles.headerText}>Name</Text>
@@ -88,29 +78,93 @@ function Products() {
           <Text style={styles.emptyText}>No products available.</Text>
         ) : (
           products.map((item) => (
-              <Pressable
-                    key={item.id}
-                    style={styles.tableRow}
-                    onPress={() => router.push({ pathname: '/pages/update_product', params: { id: item.id } })
-                  }
-                    onLongPress={() => confirmDelete(item.id)}
-                  >
-                    <Text style={styles.rowText}>{item.category?.name || 'N/A'}</Text>
-                    <Text style={styles.rowText}>{item.name}</Text>
-                    <Image
-                      source={{
-                        uri: item.image || 'N/A',
-                      }}
-                      style={styles.productImage}
-                      resizeMode="cover"
-                    />
-                    <Text style={styles.rowText}>₱{item.price}</Text>
-                  </Pressable>
-                ))
+            <Pressable
+              key={item.id}
+              style={styles.tableRow}
+              onPress={() => openActionModal(item)}
+            >
+              <Text style={styles.rowText}>{item.category?.name || 'N/A'}</Text>
+              <Text style={styles.rowText}>{item.name}</Text>
+              <Image
+                
+                style={styles.productImage}
+              />
+              <Text style={styles.rowText}>₱{item.price}</Text>
+            </Pressable>
+          ))
         )}
-      </View>   
+      </View>
+
+     
+      <Modal visible={isModalVisible} animationType="slide" transparent onRequestClose={closeModal}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Manage Product</Text>
+
+            <Pressable
+              style={styles.modalButton}
+              onPress={() => {
+                closeModal();
+                router.push({
+                  pathname: '/pages/update_product',
+                  params: { id: selectedProduct.id },
+                });
+              }}
+            >
+              <Text style={styles.modalButtonText}>Update Product</Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.modalButton, { backgroundColor: '#dc2626' }]}
+              onPress={() => {
+                setModalVisible(false);
+                setShowConfirmModal(true);
+              }}
+            >
+              <Text style={[styles.modalButtonText, { color: '#fff' }]}>Delete Product</Text>
+            </Pressable>
+
+            <Pressable onPress={closeModal}>
+              <Text style={{ marginTop: 10, color: '#555' }}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+
+      <Modal
+        visible={showConfirmModal}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setShowConfirmModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Are you sure?</Text>
+            <Text style={{ textAlign: 'center', marginBottom: 20 }}>
+              Do you really want to delete this product?
+            </Text>
+
+            <Pressable
+              style={[styles.modalButton, { backgroundColor: '#dc2626' }]}
+              onPress={() => {
+                setShowConfirmModal(false);
+                handleDestroyProduct(selectedProduct.id);
+              }}
+            >
+              <Text style={[styles.modalButtonText, { color: '#fff' }]}>Yes, Delete</Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.modalButton, { backgroundColor: '#ccc' }]}
+              onPress={() => setShowConfirmModal(false)}
+            >
+              <Text style={[styles.modalButtonText, { color: '#333' }]}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
-    
   );
 }
 
@@ -189,9 +243,38 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: 'center',
-    color: '#555',
+    color: '#fff',
     marginVertical: 20,
     fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalButton: {
+    width: '100%',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
