@@ -7,6 +7,7 @@ import  { retrieveTransactions } from '../../API/transactions'
 
 function Dashboard() {
   const [ transactions, setTransactions ] = useState([]);
+  const [totalCompleted, setTotalCompleted] = useState(0);
   
   const hourlySalesData = {
     labels : ['9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM'],
@@ -35,16 +36,25 @@ function Dashboard() {
     ],
   };
   useEffect(() => {
-      retrieveTransactions()
-        .then((transactionRes) => {
- 
-          setTransactions(transactionRes.data);
-          console.log('Transactions:', transactionRes);
-        })
-        .catch((error) => {
-          console.error('Error fetching transactions:', error);
-        });
-    }, []);
+  retrieveTransactions()
+    .then((transactionRes) => {
+      const allTransactions = transactionRes.data;
+      setTransactions(allTransactions);
+
+      const completedTotal = allTransactions
+        .filter(item => item.status === 'completed')
+        .reduce((sum, item) => sum + Number(item.total || 0), 0);
+
+      setTotalCompleted(completedTotal);
+
+      console.log('Transactions:', transactionRes);
+    })
+    .catch((error) => {
+      console.error('Error fetching transactions:', error);
+    });
+}, []);
+
+
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -124,20 +134,26 @@ function Dashboard() {
         <View style={styles.revcontainer}>
           <Text style={styles.title}>Transaction History</Text>
               <ScrollView>
-                {transactions.map((item) => (
-                  <View key={item.id} style={styles.row}>
-                    <Text style={styles.cell}>Invoice #:{item.invoice_number}</Text>
-                    <Text style={styles.cell}>Total: ₱{item.total}</Text>
-                  </View>
-                ))}
+                      {transactions.map((item) => (
+                        <View key={item.id} style={styles.row}>
+                          <Text style={styles.cell}>Invoice #:{item.invoice_number}</Text>
+                          <Text style={styles.cell}>Total: ₱{item.total}</Text>
+                          <Text style={styles.cell}>Change ₱{item.cash}</Text>
+                          <View style={styles.divider}></View>
+                        </View>
+                      ))}
               </ScrollView>
         </View>
               
-              <View style={styles.revcontainer}>
+            <View style={styles.revcontainer}>
                 <Text style={styles.title}>Total of Sales Today</Text>
-                <ScrollView>
-                </ScrollView>
-              </View>
+                  <View style={styles.totalBox}>
+                      <Text style={styles.totalAmount}>
+                          ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(totalCompleted))}
+                      </Text>
+                    </View>
+              </View>   
+
     </View>
     </ScrollView>
   );
@@ -176,8 +192,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 10,
-    height: 200, 
+    height: 200,
   },
+  totalBox: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 100,
+  },
+  totalAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#09ed3f',
+  },
+  divider: {
+  height: 1,
+  backgroundColor: '#e0e0e0',  
+  marginVertical: 10,          
+},
   
 });
 
