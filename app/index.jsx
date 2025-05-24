@@ -20,7 +20,6 @@ export default function LoginScreen() {
       setLoading(false);
       return;
     }
-
     const body = {
       username,
       password,
