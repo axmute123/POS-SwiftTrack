@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-chart-kit';
 import { router } from 'expo-router';
-import { retrieveTransactions, fetchHourlySales, retrieveRevenue} from '../../API/transactions';
-import Other from './other';
+import { retrieveTransactions, fetchHourlySales, retrieveRevenue } from '../../API/transactions';
 
 function Dashboard() {
+
+  const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [totalCompleted, setTotalCompleted] = useState(0);
+
   const [hourlySalesData, setHourlySalesData] = useState({
     labels: [],
-    datasets: [{data: [] }],
+    datasets: [{ data: [] }],
   });
-    const [ barData , setBarData ] = useState({
+  const [barData, setBarData] = useState({
     labels: [],
-    datasets: [],  
+    datasets: [],
   });
 
   const coffeeData = [
@@ -25,106 +27,96 @@ function Dashboard() {
     { name: 'Mocha', population: 20, color: '#bc8ff2', legendFontColor: '#7F7F7F', legendFontSize: 15 }
   ];
 
-  const Bardata = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-    datasets: [
-      {
-        data: [20, 45, 28, 80, 99],
-      },
-    ],
+  const fetchTransactions= () =>{
+    if(!loading){
+      retrieveTransactions().then((res) => {
+        const allTransactions = res.data;
+        
+        const completedTotal = allTransactions
+        .filter(item => item.status === 'completed')
+        .reduce((sum, item) => {
+          // console.log(sum, item)
+          sum + Number(item.total || 0), 0
+        } ); 
+
+        setTransactions(allTransactions);
+        setTotalCompleted(completedTotal);
+      })
+      .catch((error) => {
+        console.error('Error fetching transactions:', error);
+      }).finally(()=>setLoading(false));
+    }
+  }
+
+  const refreshChart = () => {
+    if (!loading) {
+      setLoading(true);
+      fetchHourlySales().then(res=> {
+        const hourlySalesData = {
+          labels: res?.labels,
+          datasets: [
+            {
+              data:res?.sales,
+              strokeWidth: 2,
+              color: (opacity = 1) => `rgba(255,255,255,${opacity})`
+            },
+          ],
+        }
+      setHourlySalesData(hourlySalesData);
+      }).finally(() => setLoading(false));
+    }
   };
 
-    useEffect(() => {
-     
-      retrieveTransactions()
-        .then((res) => {
-          const allTransactions = res.data;
+    const fetchRevenue = async () => {
 
-          const completedTotal = allTransactions
-            .filter(item => item.status === 'completed')
-            .reduce((sum, item) => sum + Number(item.total || 0), 0);
-
-          setTransactions(allTransactions);
-          setTotalCompleted(completedTotal);
-        })
-        .catch((error) => {
-          console.error('Error fetching transactions:', error);
-        });
-
-      
-      const refreshChart = () => {
-        fetchHourlySales()
-          .then((hourlySales) => {
-            if (!hourlySales) return;
-
-            const hourlySalesData = {
-              labels: ["9AM", "10AM", "11AM", "12PM", "1PM", "2PM", "3PM", "4PM", "5PM"],
-              datasets: [
-                {
-                  data: [
-                    hourlySales["9AM"] || 0,
-                    hourlySales["10AM"] || 0,
-                    hourlySales["11AM"] || 0,
-                    hourlySales["12PM"] || 0,
-                    hourlySales["1PM"] || 0,
-                    hourlySales["2PM"] || 0,
-                    hourlySales["3PM"] || 0,
-                    hourlySales["4PM"] || 0,
-                    hourlySales["5PM"] || 0,
-                  ],
-                  strokeWidth: 2,
-                  color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                },
-              ],
-            };
-
-            setHourlySalesData(hourlySalesData);
-          })
-          .catch((error) => {
-            console.error('Error fetching hourly sales data:', error);
-          });
-      };
-
-      refreshChart(); 
-
-    
-      const interval = setInterval(() => {
-        const now = new Date();
-        if (now.getHours() === 0 && now.getMinutes() === 0) {
-          refreshChart(); 
-        }
-      }, 60000); 
-
-      
-      const fetchRevenue = async () => {
+      if(!loading) {
         const result = await retrieveRevenue();
-
+        
+        
         if (result) {
           const monthNames = [
-            "January", "February", "March", "April", "May", "June",
+            "January", "February", "March", "April", "May", "June", 
             "July", "August", "September", "October", "November", "December"
           ];
-
+          
           const labels = result.map(item => {
             const monthNumber = parseInt(item.month.split('-')[1], 10);
             return monthNames[monthNumber - 1];
           });
-
+          
           const data = result.map(item => Number(item.revenue));
-
+          
           setBarData({
             labels,
             datasets: [{ data }],
-          });
+          }).finally(()=>setLoading(false));
         }
-      };
+      }
+    };
 
-      fetchRevenue();
+  useEffect(() => {
+    fetchTransactions();
 
-      return () => clearInterval(interval); 
-    }, []);
+    refreshChart();
 
+    const interval = setInterval(() => {
+      const now = new Date();
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        refreshChart();
+      }
+    }, 60000);
 
+    fetchRevenue();
+
+    return () => clearInterval(interval);
+  }, []);
+
+      if (loading) return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#e11d48" />
+          <Text style={styles.loadingText}>Fetching Data..</Text>
+        </View>
+      )
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container2}>
@@ -151,38 +143,37 @@ function Dashboard() {
 
       <View style={styles.container2}>
         <Text style={styles.title}>Hourly Sales Overview</Text>
-        {hourlySalesData.datasets.length > 0 && (
-      <LineChart
-            data={hourlySalesData}
-            width={325}
-            height={300}
-            chartConfig={{
-              backgroundColor: '#e26a',
-              backgroundGradientFrom: '#e11d48',
-              backgroundGradientTo: '#ffa726',
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(255,255,255, ${opacity})`,
-              style: { borderRadius: 16 },
-            }}
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-            withHorizontalLabels={true}
-            xLabelsOffset={10}
-            decorator={() => {}}
-            yAxisLabel=""
-            yAxisSuffix=""
-            fromZero={true}
-            verticalLabelRotation={45}
-          />
-        )}
 
-      </View>
+          { hourlySalesData?.labels?.length > 0 ? (
+            <LineChart
+              data={hourlySalesData}
+              width={325}
+              height={300}
+              chartConfig={{
+                backgroundColor: '#e26a',
+                backgroundGradientFrom: '#e11d48',
+                backgroundGradientTo: '#ffa726',
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(255,255,255,${opacity})`,
+                style: { borderRadius: 16 },
+              }}
+              style={{
+                marginVertical: 8,
+                borderRadius: 16,
+              }}
+              withHorizontalLabels={true}
+              xLabelsOffset={10}
+              yAxisLabel=""
+              yAxisSuffix=""
+              fromZero={true}
+              verticalLabelRotation={45}
+            />
+            ): <Text> No data Available. </Text>
+          }
+      </View> 
 
       <View style={styles.container3}>
-        <Text style={styles.title}>Monthly Revenue</Text>
-
+        <Text style={styles.title}>Monthly Sales</Text>
         {barData?.datasets?.[0]?.data?.length > 0 ? (
           <BarChart
             data={barData}
@@ -197,30 +188,27 @@ function Dashboard() {
               style: { borderRadius: 16 },
             }}
             style={{
-              // marginVertical: 8,
               borderRadius: 16,
-              // paddingRight: 5,
-
             }}
           />
         ) : (
-          <Text>Loading chart data...</Text>
+          <Text>No data Available.</Text>
         )}
       </View>
 
-
+    
       <View style={styles.sideContainer}>
         <View style={styles.revcontainer}>
           <Text style={styles.title}>Transaction History</Text>
-          <ScrollView>
-            {transactions.map((item) => (
-              <View key={item.id} style={styles.row}>
-                <Text style={styles.cell}>Invoice #: {item.invoice_number}</Text>
-                <Text style={styles.cell}>Total: ₱{item.total}</Text>
-                <Text style={styles.cell}>Change ₱{item.cash}</Text>
-                <View style={styles.divider}></View>
-              </View>
-            ))}
+          <ScrollView style={{ height: 160 }} contentContainerStyle={{ paddingBottom: 20 }}>
+            {transactions.map((item, index) => (
+                <View key={item.id || index} style={styles.row}>
+                  <Text style={styles.cell}>Invoice #: {item.invoice_number || 'N/A'}</Text>
+                  <Text style={styles.cell}>Total: ₱{item.total ?? 0}</Text>
+                  <Text style={styles.cell}>Change: ₱{item.cash ?? 0}</Text>
+                  <View style={styles.divider}></View>
+                </View>
+              ))}
           </ScrollView>
         </View>
 
@@ -228,7 +216,10 @@ function Dashboard() {
           <Text style={styles.title}>Total of Sales</Text>
           <View style={styles.totalBox}>
             <Text style={styles.totalAmount}>
-              ₱ {new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(totalCompleted))}
+                ₱ {isNaN(totalCompleted) ? '0.00' : new Intl.NumberFormat('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(Number(totalCompleted))}
             </Text>
           </View>
         </View>
@@ -260,6 +251,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sideContainer: {
+    flex:1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 30,
@@ -270,7 +262,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 10,
-    height: 200,
+    // height: 200,
   },
   totalBox: {
     backgroundColor: '#fff',
@@ -289,6 +281,28 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e0e0e0',
     marginVertical: 10,
+  },
+  cell: {
+    fontSize: 12,
+  },
+  row: {
+    marginBottom: 5,
+  },
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    display:'flex',
+    justifyContent: "center", 
+    alignItems: "center",
+    zIndex:99999
+  },
+  loadingText: {
+    marginTop: 10, 
+    fontSize: 14,
+    color: "black",
   },
 });
 

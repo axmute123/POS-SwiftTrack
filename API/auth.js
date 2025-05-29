@@ -24,6 +24,7 @@ export const logout = async (token) => {
 };
 
 export const login = async (body) => {
+  console.log('hey3')
   const res = await fetch(`${URL}/login`, {
     method: "POST",
     headers: {
@@ -32,6 +33,7 @@ export const login = async (body) => {
     },
     body:JSON.stringify(body),
   });
+  console.log(res)
   return await res.json();
 };
 

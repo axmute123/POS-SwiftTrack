@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,  KeyboardAvoidingView, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { login } from "../API/auth";  
+import {login} from '../API/auth'
 import { router } from "expo-router";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -11,89 +11,90 @@ export default function LoginScreen() {
   const [loginMsg, setLoginMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    setLoading(true);
-    setLoginMsg("");  
+  const handleLogin = async() => {
 
-    if (!username || !password) {
-      setLoginMsg("Both fields are required.");
-      setLoading(false);
-      return;
-    }
-    const body = {
-      username,
-      password,
-    };
-    console.log(body)
-    try {
-      const response = await login(body);  
-      console.log(response)
-
-      if (response.ok) {
-        router.replace("/dashboard");
-// await AsyncStorage.setItem('toke', response);
-      } else {
-        setLoginMsg("Invalid username or password.");
-        console.log(response.message)
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      setLoginMsg("An error occurred. Please try again.");
-    } finally {
+    if (!loading){ 
       setLoading(true);
+      if (!username || !password) {
+        setLoginMsg("Both fields are required.");
+        setLoading(false);
+        return;
+      }
+   
+      const body = {
+        username,
+        password,
+      };
+
+      login(body).then(res=>{
+        if (res.ok) router.replace("/dashboard");
+        else setLoginMsg("Invalid username or password.");     
+      }).finally(()=>{
+        setLoading(false);
+        setLoginMsg('');
+      })
     }
   };
 
+  if (loading) return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#e11d48" />
+      <Text style={styles.loadingText}>Logging in...</Text>
+    </View>
+  )
+
   return (
+
     <LinearGradient
       colors={["#808080", "#e11d48", "#ec4899", "#a21caf"]}  
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
-      style={styles.container}
+      style={styles.main}
     >
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#fff" />
-          <Text style={styles.loadingText}>Logging in...</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={styles.container}
+      >
+
+        <View style={styles.textOverlay}>
+          <Text style={styles.title}>Welcome to Swift Track!</Text>
+          <Text style={styles.subtitle}>
+            Where transactions are made easier! You can log in using an existing account
+          </Text>
         </View>
-      )}
 
-     
-      <View style={styles.textOverlay}>
-        <Text style={styles.title}>Welcome to Swift Track!</Text>
-        <Text style={styles.subtitle}>
-          Where transactions are made easier! You can log in using an existing account
-        </Text>
-      </View>
+        <View style={styles.formBox}>
+          <Text style={styles.formTitle}>Login</Text>
 
-      <View style={styles.formBox}>
-        <Text style={styles.formTitle}>Login</Text>
+          <TextInput
+            placeholder="Username"
+            value={username}
+            onChangeText={setUsername}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Pin Code"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            style={styles.input}
+          />
 
-        <TextInput
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder="Pin Code"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          style={styles.input}
-        />
+          {loginMsg && <Text style={styles.error}>{loginMsg}</Text>}
 
-        {loginMsg && <Text style={styles.error}>{loginMsg}</Text>}
-
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>Login</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  main:{
+    flex:1
+  },
   container: {
     flex: 1,
     flexDirection: "column",
@@ -102,20 +103,23 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     position: "absolute",
-    top: "50%", 
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    display:'flex',
     justifyContent: "center", 
     alignItems: "center",
+    zIndex:99999
   },
   loadingText: {
     marginTop: 10, 
-    fontSize: 18,
-    color: "white",
+    fontSize: 14,
+    color: "black",
   },
   
   textOverlay: {
-    position: "absolute",
-    top: 20,  
-    width: "100%",
+    width: "90%",
     padding: 20,
     justifyContent: "center", 
     alignItems: "center", 
@@ -131,10 +135,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
   },
-  formBox: {
-    position: "absolute",   
-    top: "30%", 
-    height: "60%",        
+  formBox: {       
     width: "90%",         
     backgroundColor: "#fff",
     padding: 20,
