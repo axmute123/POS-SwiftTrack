@@ -55,6 +55,8 @@ function Products() {
         <Pressable style={styles.item} onPress={() => router.push('../../pages/add_bundles')}>
           <Text>Bundles</Text>
         </Pressable>
+      </View>
+      <View style={styles.navContainer}>
         <Pressable style={styles.item} onPress={() => router.push('../../pages/add_addons')}>
           <Text>Add-Ons</Text>
         </Pressable>
@@ -176,7 +178,7 @@ const styles = StyleSheet.create({
   },
   navContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    // flexWrap: 'wrap',
     justifyContent: 'center',
     marginBottom: 20,
   },

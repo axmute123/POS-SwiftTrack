@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect , useCallback} from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-chart-kit';
 import { router } from 'expo-router';
-import { retrieveTransactions, retrieveHourlySales, retrieveRevenue } from '../../API/transactions';
+import { retrieveDailyTransactions, retrieveHourlySales, retrieveRevenue, retrieveTopProducts } from '../../API/transactions';
 
 function Dashboard() {
 
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
-  const [totalCompleted, setTotalCompleted] = useState(0);
+  const [totalSales, setTotalSales] = useState(0);
 
   const [hourlySalesData, setHourlySalesData] = useState({
     labels: [],
@@ -30,18 +30,14 @@ function Dashboard() {
 
   const fetchTransactions= () =>{
     if(!loading){
-      retrieveTransactions().then(res => {
-        const allTransactions = res?.data;
-        
-        const completedTotal = allTransactions
-          .filter(item => item.status === 'completed')
-          .reduce((sum, item) => sum + Number(item.total || 0), 0); 
-
-        setTransactions(allTransactions);
-        setTotalCompleted(completedTotal);
-      })
-      .catch((error) => {
-        console.error('Error fetching transactions:', error);
+      retrieveDailyTransactions().then(res => {
+        if (res?.ok) {
+          setTransactions(res?.data);
+          const total = res?.data?.reduce((sum, tx) => {
+            return sum + parseFloat(tx.total);
+          }, 0);
+          setTotalSales(total);
+        }else console.log(res)
       }).finally(()=>setLoading(false));
     }
   }
@@ -65,65 +61,78 @@ function Dashboard() {
     }
   };
 
-  const fetchRevenue = async () => {
-
+  const fetchRevenue = () => {
     if(!loading) {
-      const result = await retrieveRevenue();
-      
-      
-      if (result) {
-        const monthNames = [
-          "January", "February", "March", "April", "May", "June", 
-          "July", "August", "September", "October", "November", "December"
-        ];
-        
-        const labels = result.map(item => {
-          const monthNumber = parseInt(item.month.split('-')[1], 10);
-          return monthNames[monthNumber - 1];
-        });
-        
-        const data = result.map(item => Number(item.revenue));
-        
-        setBarData({
-          labels,
-          datasets: [{ data }],
-        }).finally(()=>setLoading(false));
-      }
+      setLoading(true);
+      retrieveRevenue().then(res=>{
+        console.log(res)
+        if (res) {
+          const data = res.map(item => item?.total_sales);
+          const labels = res?.map(item=>item?.month);
+          setBarData({
+            labels,
+            datasets: [{ data }],
+          })
+        } else console.log('error') 
+        .finally(()=>setLoading(false));
+      });   
     }
   };
 
-  const fetchTopProducts = () => {
+  const colors = ['#ff9e3e', '#8fbc8f', '#bbaeff', '#9fd4c7', '#bc8ff2'];
 
+  const fetchTopProducts = () => {
+    if (!loading) {
+      setLoading(true);
+      retrieveTopProducts().then(res=>{
+        if(res?.ok){
+          const data = res.data.map((item, index) => ({
+            name: item.name,
+            population: parseInt(item.total_qty),
+            color: colors[index % colors.length],
+            legendFontColor: '#7F7F7F',
+            legendFontSize: 15
+          }));           
+          setTopProducts(data);
+        } else console.log(res);
+      }).finally(()=>setLoading(false))
+    }
   }
 
   useEffect(() => {
     fetchTransactions();
-
     fetchHourlySales();
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      if (now.getHours() === 0 && now.getMinutes() === 0) {
-        fetchHourlySales();
-      }
-    }, 60000);
-
+    fetchTopProducts();
+    fetchHourlySales();
     fetchRevenue();
-
-    return () => clearInterval(interval);
   }, []);
 
-      if (loading) return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#e11d48" />
-          <Text style={styles.loadingText}>Fetching Data..</Text>
-        </View>
-      )
-  return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container2}>
+  const onRefresh = useCallback(() => {
+    fetchTransactions();
+    fetchHourlySales();
+    fetchTopProducts();
+    fetchHourlySales();
+    fetchRevenue();
+  }, []);
 
-        <Text style={styles.title}>Top Coffee Products Sales</Text>
+  if (loading) return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#e11d48" />
+      <Text style={styles.loadingText}>Fetching Data..</Text>
+    </View>
+  )
+
+  return (
+    <ScrollView 
+      contentContainerStyle={styles.main}
+      refreshControl={
+        <RefreshControl refreshing={false} onRefresh={onRefresh} />
+      }
+      nestedScrollEnabled={true}
+    >
+      <View style={styles.container}>
+
+        <Text style={styles.title}>Top Products of the Month</Text>
         <PieChart
           data={topProducts}
           width={300}
@@ -144,7 +153,7 @@ function Dashboard() {
         />
       </View>
 
-      <View style={styles.container2}>
+      <View style={styles.container}>
         <Text style={styles.title}>Hourly Sales Overview</Text>
 
           { hourlySalesData?.labels?.length > 0 ? (
@@ -161,7 +170,6 @@ function Dashboard() {
                 style: { borderRadius: 16 },
               }}
               style={{
-                marginVertical: 8,
                 borderRadius: 16,
               }}
               withHorizontalLabels={true}
@@ -175,7 +183,7 @@ function Dashboard() {
           }
       </View> 
 
-      <View style={styles.container3}>
+      <View style={styles.container}>
         <Text style={styles.title}>Monthly Sales</Text>
         {barData?.datasets?.[0]?.data?.length > 0 ? (
           <BarChart
@@ -200,85 +208,62 @@ function Dashboard() {
       </View>
 
     
-      <View style={styles.sideContainer}>
-        <View style={styles.revcontainer}>
+   
+        <View style={styles.transactions}>
           <Text style={styles.title}>Transaction History</Text>
-          <ScrollView style={{ height: 160 }} contentContainerStyle={{ paddingBottom: 20 }}>
-            {transactions.map((item, index) => (
-                <View key={item.id || index} style={styles.row}>
-                  <Text style={styles.cell}>Invoice #: {item.invoice_number || 'N/A'}</Text>
-                  <Text style={styles.cell}>Total: ₱{item.total ?? 0}</Text>
-                  <Text style={styles.cell}>Change: ₱{item.cash ?? 0}</Text>
+          <ScrollView 
+            style={{ height: 160}} 
+            nestedScrollEnabled={true}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          >
+            {transactions?.map((item, index) => (
+                <View key={index} style={styles.row}>
+                  <Text style={styles.cell}>Time: {item?.updated_at ?? 0}</Text>
+                  <Text style={styles.cell}>Invoice #: {item?.invoice_number || 'N/A'}</Text>
+                  <Text style={styles.cell}>Total: ₱{item?.total ?? 0}</Text>
+                  <Text style={styles.cell}>Cash: ₱{item?.cash ?? 0}</Text>
+                  <Text style={styles.cell}>Change: ₱{item?.change ?? 0}</Text>
                   <View style={styles.divider}></View>
                 </View>
               ))}
           </ScrollView>
         </View>
 
-        <View style={styles.revcontainer}>
-          <Text style={styles.title}>Total of Sales</Text>
+        <View style={[styles.transactions, {height:'auto', marginBottom:35}]}>
+          <Text style={styles.title}>Total Sales of the Day</Text>
           <View style={styles.totalBox}>
             <Text style={styles.totalAmount}>
-                ₱ {isNaN(totalCompleted) ? '0.00' : new Intl.NumberFormat('en-US', {
+                ₱ {isNaN(totalSales) ? '0.00' : new Intl.NumberFormat('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                }).format(Number(totalCompleted))}
+                }).format(Number(totalSales))}
             </Text>
           </View>
         </View>
-      </View>
+  
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
+  main: {
     backgroundColor: '#e11d48',
     padding: 10,
   },
-  container2: {
-    marginBottom: 30,
+  container: {
+    marginBottom: 20,
     backgroundColor: '#fff',
     borderRadius: 8,
     padding: 10,
-  },
-  container3: {
-    marginBottom: 30,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 10,
+    display:'flex',
+    alignItems:'center',
+    justifyContent:'center'
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
-  },
-  sideContainer: {
-    flex:1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 30,
-  },
-  revcontainer: {
-    flex: 1,
-    marginRight: 10,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 10,
-    // height: 200,
-  },
-  totalBox: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 100,
-  },
-  totalAmount: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#09ed3f',
+    alignSelf:'flex-start'
   },
   divider: {
     height: 1,
@@ -306,6 +291,27 @@ const styles = StyleSheet.create({
     marginTop: 10, 
     fontSize: 14,
     color: "black",
+  },
+  transactions: {
+    width:'100%',
+    backgroundColor:'#fff',
+    marginBottom:20,
+    height:'300px',
+    borderRadius:8,
+    padding:10
+  },
+    totalBox: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 100,
+  },
+  totalAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#09ed3f',
   },
 });
 
