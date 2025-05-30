@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-chart-kit';
 import { router } from 'expo-router';
-import { retrieveTransactions, fetchHourlySales, retrieveRevenue } from '../../API/transactions';
+import { retrieveTransactions, retrieveHourlySales, retrieveRevenue } from '../../API/transactions';
 
 function Dashboard() {
 
@@ -14,30 +14,28 @@ function Dashboard() {
     labels: [],
     datasets: [{ data: [] }],
   });
+
   const [barData, setBarData] = useState({
     labels: [],
     datasets: [],
   });
 
-  const coffeeData = [
-    { name: 'Latte', population: 30, color: '#ff9e3e', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: 'Cappuccino', population: 25, color: '#8fbc8f', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: 'Espresso', population: 15, color: '#bbaeff', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: 'Americano', population: 10, color: '#9fd4c7', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: 'Mocha', population: 20, color: '#bc8ff2', legendFontColor: '#7F7F7F', legendFontSize: 15 }
-  ];
+  const [topProducts, setTopProducts] = useState( [
+    { name: '', population: 0, color: '#ff9e3e', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+    { name: '', population: 0, color: '#8fbc8f', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+    { name: '', population: 0, color: '#bbaeff', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+    { name: '', population: 0, color: '#9fd4c7', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+    { name: '', population: 0, color: '#bc8ff2', legendFontColor: '#7F7F7F', legendFontSize: 15 }
+  ]);
 
   const fetchTransactions= () =>{
     if(!loading){
-      retrieveTransactions().then((res) => {
-        const allTransactions = res.data;
+      retrieveTransactions().then(res => {
+        const allTransactions = res?.data;
         
         const completedTotal = allTransactions
-        .filter(item => item.status === 'completed')
-        .reduce((sum, item) => {
-          // console.log(sum, item)
-          sum + Number(item.total || 0), 0
-        } ); 
+          .filter(item => item.status === 'completed')
+          .reduce((sum, item) => sum + Number(item.total || 0), 0); 
 
         setTransactions(allTransactions);
         setTotalCompleted(completedTotal);
@@ -48,10 +46,10 @@ function Dashboard() {
     }
   }
 
-  const refreshChart = () => {
+  const fetchHourlySales = () => {
     if (!loading) {
       setLoading(true);
-      fetchHourlySales().then(res=> {
+      retrieveHourlySales().then(res=> {
         const hourlySalesData = {
           labels: res?.labels,
           datasets: [
@@ -67,42 +65,46 @@ function Dashboard() {
     }
   };
 
-    const fetchRevenue = async () => {
+  const fetchRevenue = async () => {
 
-      if(!loading) {
-        const result = await retrieveRevenue();
+    if(!loading) {
+      const result = await retrieveRevenue();
+      
+      
+      if (result) {
+        const monthNames = [
+          "January", "February", "March", "April", "May", "June", 
+          "July", "August", "September", "October", "November", "December"
+        ];
         
+        const labels = result.map(item => {
+          const monthNumber = parseInt(item.month.split('-')[1], 10);
+          return monthNames[monthNumber - 1];
+        });
         
-        if (result) {
-          const monthNames = [
-            "January", "February", "March", "April", "May", "June", 
-            "July", "August", "September", "October", "November", "December"
-          ];
-          
-          const labels = result.map(item => {
-            const monthNumber = parseInt(item.month.split('-')[1], 10);
-            return monthNames[monthNumber - 1];
-          });
-          
-          const data = result.map(item => Number(item.revenue));
-          
-          setBarData({
-            labels,
-            datasets: [{ data }],
-          }).finally(()=>setLoading(false));
-        }
+        const data = result.map(item => Number(item.revenue));
+        
+        setBarData({
+          labels,
+          datasets: [{ data }],
+        }).finally(()=>setLoading(false));
       }
-    };
+    }
+  };
+
+  const fetchTopProducts = () => {
+
+  }
 
   useEffect(() => {
     fetchTransactions();
 
-    refreshChart();
+    fetchHourlySales();
 
     const interval = setInterval(() => {
       const now = new Date();
       if (now.getHours() === 0 && now.getMinutes() === 0) {
-        refreshChart();
+        fetchHourlySales();
       }
     }, 60000);
 
@@ -120,9 +122,10 @@ function Dashboard() {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container2}>
+
         <Text style={styles.title}>Top Coffee Products Sales</Text>
         <PieChart
-          data={coffeeData}
+          data={topProducts}
           width={300}
           height={180}
           chartConfig={{
