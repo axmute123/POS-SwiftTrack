@@ -27,7 +27,7 @@ export default function Sizes() {
       Alert.alert('Error', 'Failed to save size');
     }finally{
       setLoading(false);
-      router.replace('/(drawer)/products');
+      router.push('/(drawer)/other');
     }
 };
   return (

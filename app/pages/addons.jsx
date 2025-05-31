@@ -28,7 +28,7 @@ export default function Addons() {
             Alert.alert('Error', 'Failed to save Addons');
           }finally{
             setLoading(false);
-            router.replace('/(drawer)/products');
+            router.push('/(drawer)/other');
           }
       };
 

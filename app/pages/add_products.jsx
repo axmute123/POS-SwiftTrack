@@ -26,7 +26,7 @@ export default function AddProducts() {
   }, []);
 
   const handleaddProducts = async () => {
-console.log('hey')
+  // console.log('hey')
     if (!loading) {
       setLoading(true);
       if(!name || !price ) {
@@ -43,12 +43,7 @@ console.log('hey')
         setName('');
         setPrice('');
         // console.log("Saved Products", result);
-        router.replace({
-          pathname:'/(drawer)/products',
-          query:{
-            success:'yes'
-          }
-        });
+        router.replace('/(drawer)/products');
       }catch(error){
         console.error("API Error", error);
         Alert.alert('Error', 'Failed to save products');

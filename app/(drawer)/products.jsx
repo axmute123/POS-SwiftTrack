@@ -26,14 +26,8 @@ function Products() {
     };
 
   useLayoutEffect(() => {
-   
     fetchProducts();
   }, []);
-
-  useEffect (()=>{
-    fetchProducts();
-    console.log(success)
-  },[success]);
 
   const handleDestroyProduct = async (productId) => {
     try {
@@ -78,7 +72,7 @@ function Products() {
               <Text style={styles.rowText}>{item.category?.name || 'N/A'}</Text>
               <Text style={styles.rowText}>{item.name}</Text>
               <Image                  
-                source={{ uri: `http://192.168.1.7:8000/storage/${item?.extension}`}}
+                source={{ uri: `http://192.168.1.6:8000/storage/${item?.extension}`}}
                 resizeMode="cover"
                 style={styles.productImage}
               />

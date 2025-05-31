@@ -21,7 +21,7 @@ export default function Category() {
       console.error('Error storing category', error);
       Alert.alert('Error', 'Failed to store category')
     }finally{
-      router.replace('/(drawer)/products');
+      router.push('/(drawer)/other');
     }
   };
 

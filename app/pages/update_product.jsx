@@ -20,7 +20,7 @@ export default function UpdateProduct() {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true); // <-- for loading screen
+  const [initialLoading, setInitialLoading] = useState(true); 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,10 +54,10 @@ export default function UpdateProduct() {
   }, [id]);
 
   const handleUpdateProduct = async () => {
-    // if (!name || !price || !selectedCategory) {
-    //   Alert.alert('Validation Error', 'Please fill in all fields');
-    //   return;
-    // }
+    if (!name || !price || !selectedCategory) {
+      Alert.alert('Validation Error', 'Please fill in all fields');
+      return;
+    }
 
     setLoading(true);
     try {

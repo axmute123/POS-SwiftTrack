@@ -80,7 +80,7 @@ export default function Bundles() {
       Alert.alert('Error', 'Failed to save bundle');
     } finally {
       setLoading(false);
-      router.replace('/(drawer)/products');
+      router.push('/(drawer)/other');
     }
   };
  
