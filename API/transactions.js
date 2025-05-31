@@ -1,12 +1,13 @@
 
 import { URL } from './connection'
 
-export const retrieveTransactions = async () => {
+export const retrieveTransactions = async (token) => {
     const response = await fetch(`${URL}/getTransactions`,{
         method: 'GET', 
         headers: {
             Accept:'application/json',
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
         }, 
     });
     return response.json();

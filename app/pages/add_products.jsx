@@ -1,6 +1,6 @@
 import React, {useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, Pressable, ActivityIndicator } from 'react-native';
-import { storeProducts } from '@/API/product';
+import { storeProducts } from '../../API/product';
 import { retrieveCategory } from '@/API/category';
 import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
@@ -26,32 +26,40 @@ export default function AddProducts() {
   }, []);
 
   const handleaddProducts = async () => {
-    if(!name || !price ) {
-      Alert.alert('Validation Error', 'Please fill in all fields');
-      return;
-    }
-    try{
-      const result = await storeProducts({
-        name: name,
-        price: price,
-        category_id:selectedCategory
-      });
-      Alert.alert('Success', 'Products saved succesfully');
-      setName('');
-      setPrice('');
-      console.log("Saved Products", result);
-    }catch(error){
-      console.error("API Error", error);
-      Alert.alert('Error', 'Failed to save products');
-    }finally{
-      setLoading(false);
-      router.replace('/(drawer)/products');
+console.log('hey')
+    if (!loading) {
+      setLoading(true);
+      if(!name || !price ) {
+        Alert.alert('Validation Error', 'Please fill in all fields');
+        return;
+      }
+      try{
+        const result = await storeProducts({
+          name: name,
+          price: price,
+          category_id:selectedCategory
+        });
+        Alert.alert('Success', 'Products saved succesfully');
+        setName('');
+        setPrice('');
+        // console.log("Saved Products", result);
+        router.replace({
+          pathname:'/(drawer)/products',
+          query:{
+            success:'yes'
+          }
+        });
+      }catch(error){
+        console.error("API Error", error);
+        Alert.alert('Error', 'Failed to save products');
+      }finally{
+        setLoading(false);
+
+      }
     }
 };
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Add Products</Text>
-
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Name</Text>
         <TextInput
@@ -88,21 +96,23 @@ export default function AddProducts() {
       </View>
 
       </View>
-        <Pressable
-            style={({ pressed }) => [
-              styles.button,
-              pressed && { opacity: 0.8 },
-              loading && { backgroundColor: '#a0c4ff' } 
-            ]}
-            onPress={handleaddProducts}
-            disabled={loading} 
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Add Product</Text>
-            )}
-        </Pressable>
+      
+      <Pressable
+          style={({ pressed }) => [
+            styles.button,
+            pressed && { opacity: 0.8 },
+            loading && { backgroundColor: '#a0c4ff' } 
+          ]}
+          
+          onPress={() => handleaddProducts()}
+          // disabled={loading} 
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Add Product</Text>
+          )}
+      </Pressable>
     </View>
   );
 }
@@ -138,7 +148,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#1E90FF', 
+    backgroundColor: '#e11d48', 
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -164,7 +174,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   picker: {
-    height: 45,
+    height: 60,
     width: '100%',
   },
 });

@@ -23,6 +23,7 @@ export const storeProducts = async (input) => {
         },
         body: JSON.stringify(input)
     })
+    console.log(res);
     return await res.json()
 };
 
@@ -36,6 +37,7 @@ export const patchProducts = async (id,body) => {
             },
             body: JSON.stringify(body)
         })
+        console.log("Yow");
         return await res.json();
 };
 

@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, Alert, Pressable, ActivityIndicator 
 import { storeSizes } from '../../API/size';
 import { router } from 'expo-router';
 
-export default function AddAddOns() {
+export default function Sizes() {
   const [name, setName ] = useState('');
   const [ price, setPrice ] = useState('');
   const [ loading , setLoading ] = useState(false);
@@ -32,8 +32,6 @@ export default function AddAddOns() {
 };
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Add Sizes</Text>
-
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Name</Text>
         <TextInput
@@ -104,7 +102,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#1E90FF', 
+    backgroundColor: '#e11d48', 
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 8,

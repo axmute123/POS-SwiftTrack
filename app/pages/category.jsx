@@ -3,7 +3,8 @@ import { View, StyleSheet, Text, TextInput, Pressable, Alert } from 'react-nativ
 import { storeCategory } from '@/API/category';
 import { router } from 'expo-router';
 
-export default function Add_Category() {
+export default function Category() {
+  
   const [category, setCategory] = useState('');
 
   const handleAddCategory = async () => {
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   button: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#e11d48',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',

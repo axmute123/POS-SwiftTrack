@@ -1,136 +1,133 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView,  FlatList, SectionList, Pressable } from 'react-native';
 import { retrieveCategory } from '../../API/category';
 import { retrieveBundles } from '../../API/bundle';
 import { retrieveSizes } from '../../API/size';
 import { retrieveAddOns } from '../../API/addons';
+import { router, useFocusEffect  } from 'expo-router';
+import OthersContainer from '@/components/OthersContainer';
+import AddItem from '@/components/AddItem';
 
-const { height } = Dimensions.get('window');
 
 export default function Other() {
   const [categories, setCategories] = useState([]);
   const [bundles, setBundles] = useState([]);
   const [addons, setAddOns] = useState([]);
   const [sizes, setSizes] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  const [loadingBundles, setLoadingBundles] = useState(true);
-  const [loadingAddOns, setLoadingAddOns] = useState(true);
-  const [loadingSizes, setLoadingSizes] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const categoryRes = await retrieveCategory();
-        const bundleRes = await retrieveBundles();
-        const addOnsRes = await retrieveAddOns();
-        const sizeRes = await retrieveSizes();
+  const fetchData = async () => {
+    try {
+      const categoryRes = await retrieveCategory();
+      const bundleRes = await retrieveBundles();
+      const addOnsRes = await retrieveAddOns();
+      const sizeRes = await retrieveSizes();
 
-        setCategories(categoryRes.data);
-        setBundles(bundleRes.data);
-        setAddOns(addOnsRes.data);
-        setSizes(sizeRes.data);
+      setCategories(categoryRes.data);
+      setBundles(bundleRes.data);
+      setAddOns(addOnsRes.data);
+      setSizes(sizeRes.data);
 
-        setLoadingCategories(false);
-        setLoadingBundles(false);
-        setLoadingAddOns(false);
-        setLoadingSizes(false);
-      } catch (error) {
-        console.error('Error Fetching Data', error);
-      }
-    };
-    fetchData();
-  }, []);
+      setLoading(false);
+    
+    } catch (error) {
+      console.error('Error Fetching Data', error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(()=>{
+      fetchData();
+    }, [])
+  )
+
+  const sections = [
+    { title: 'Categories', data: categories },
+    { title: 'Bundles', data: bundles },
+    { title: 'AddOns', data: addons },
+    { title: 'Sizes', data: sizes },
+  ];
 
   return (
-    <View style={styles.container}>
-      <View style={styles.box}>
-        <Text style={styles.boxText}>Category</Text>
-        {loadingCategories ? (
-          <ActivityIndicator size="small" color="#d92e50" />
-        ) : (
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            {categories.map((item) => (
-              <Text key={item.id} style={{ fontStyle: 'italic' }}>{item.name}</Text>
-            ))}
-          </ScrollView>
-        )}
+    <ScrollView style={styles.main} nestedScrollEnabled={true}>
+
+      <View style={styles.navContainer}>
+        <AddItem
+          handleAction={()=>router.push('../pages/category')}
+          title='Category'
+        />
+        <AddItem
+          handleAction={()=>router.push('../pages/bundles')}
+          title='Bundles'
+        />
       </View>
 
-    
-      <View style={styles.box}>
-        <Text style={styles.boxText}>Bundle</Text>
-        {loadingBundles ? (
-          <ActivityIndicator size="small" color="#d92e50" />
-        ) : (
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            {bundles.map((item) => (
-              <Text key={item.id} style={{ fontStyle: 'italic' }}>{item.name}</Text>
-            ))}
-          </ScrollView>
-        )}
+      <View style={styles.navContainer}>
+        <AddItem
+          handleAction={()=>router.push('../pages/sizes')}
+          title='Sizes'
+        />
+        <AddItem
+          handleAction={()=>router.push('../pages/addons')}
+          title='Addons'
+        />
       </View>
 
-    
-      <View style={styles.box}>
-        <Text style={styles.boxText}>AddOns</Text>
-        {loadingAddOns ? (
-          <ActivityIndicator size="small" color="#d92e50" />
-        ) : (
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            {addons.map((item) => (
-              <Text key={item.id} style={{ fontStyle: 'italic' }}>{item.name}</Text>
-            ))}
-          </ScrollView>
+      
+      <OthersContainer
+        header='Categories'
+        loading={loading}
+        data={categories}
+      />
+      <OthersContainer
+        header='Addons'
+        loading={loading}
+        data={addons}
+      />
+      <OthersContainer
+        header='Sizes'
+        loading={loading}
+        data={sizes}
+      />
+      <OthersContainer
+        header='Bundles'
+        loading={loading}
+        data={bundles}
+      />
+  
+      {/* <SectionList
+        sections={sections}
+        keyExtractor={(item, index) => item.id + index}
+        renderItem={({ item }) => (
+          <Pressable style={styles.row}>
+            <Text style={styles.itemName}>{item.name}</Text>
+            <Divider />
+          </Pressable>
         )}
-      </View>
-
-   
-      <View style={styles.box}>
-        <Text style={styles.boxText}>Size</Text>
-        {loadingSizes ? (
-          <ActivityIndicator size="small" color="#d92e50" />
-        ) : (
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            {sizes.map((item) => (
-              <Text key={item.id} style={{ fontStyle: 'italic' }}>{item.name}</Text>
-            ))}
-          </ScrollView>
+        renderSectionHeader={({ section: { title } }) => (
+          <Text style={styles.headerText}>{title}</Text>
         )}
-      </View>
+        contentContainerStyle={{ padding: 10 }}
+      /> */}
 
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  main: {
     flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
-    alignItems: 'center',
     backgroundColor: '#e11d48',
+    paddingTop:30,
+    padding:10
   },
-  box: {
-    width: '45%',
-    height: height / 2.2, 
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
-    marginVertical: 10,
-    justifyContent: 'flex-start',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    padding: 10,
+  navContainer: {
+    flexDirection: 'row',
+    gap:20,
+    paddingHorizontal:10,
+    justifyContent: 'center',
+    marginBottom: 20,
   },
-  boxText: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  scrollContent: {
-    paddingVertical: 10,
-  },
+  
 });

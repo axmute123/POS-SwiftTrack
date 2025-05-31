@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, Pressable, Alert } from 'react-nativ
 import { storeAddons } from '@/API/addons';
 import { router } from 'expo-router';
 
-export default function AddAddOns() {
+export default function Addons() {
 
   const [ name, setName ] = useState('');
   const [ price, setPrice ] = useState('');
@@ -35,8 +35,6 @@ export default function AddAddOns() {
   return (
 
     <View style={styles.container}>
-      <Text style={styles.title}>Add_On</Text>
-
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Name</Text>
         <TextInput
@@ -107,7 +105,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#1E90FF', 
+    backgroundColor: '#e11d48', 
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 8,

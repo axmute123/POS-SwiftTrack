@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Pressable, Image, ScrollView, ActivityIndicator, Modal, } from 'react-native';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
+import { View, StyleSheet, Text, Pressable, Image, ScrollView, ActivityIndicator, Modal} from 'react-native';
 import { retrieveProducts, destroyProducts } from '../../API/product';
-import { router } from 'expo-router';
+import { router , useLocalSearchParams} from 'expo-router';
+
 
 function Products() {
   const [products, setProducts] = useState([]);
@@ -9,13 +10,13 @@ function Products() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const {success} = useLocalSearchParams();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
+ const fetchProducts = async () => {
       try {
         setLoading(true);
         const response = await retrieveProducts();
-        console.log('Fetched products:', JSON.stringify(response.data, null, 2));
+        // console.log('Fetched products:', JSON.stringify(response.data, null, 2));
         setProducts(response.data);
       } catch (err) {
         console.error('Failed to load products:', err);
@@ -24,8 +25,15 @@ function Products() {
       }
     };
 
+  useLayoutEffect(() => {
+   
     fetchProducts();
   }, []);
+
+  useEffect (()=>{
+    fetchProducts();
+    console.log(success)
+  },[success]);
 
   const handleDestroyProduct = async (productId) => {
     try {
@@ -47,32 +55,14 @@ function Products() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.navContainer}>
-        <Pressable style={styles.item} onPress={() => router.push('../../pages/add_category')}>
-          <Text>Category</Text>
-        </Pressable>
-        <Pressable style={styles.item} onPress={() => router.push('../../pages/add_bundles')}>
-          <Text>Bundles</Text>
-        </Pressable>
+    <View style={styles.container}>
+      <View style={styles.tableHeader}>
+        <Text style={styles.headerText}>Category</Text>
+        <Text style={styles.headerText}>Name</Text>
+        <Text style={styles.headerText}>Image</Text>
+        <Text style={styles.headerText}>Price</Text>
       </View>
-      <View style={styles.navContainer}>
-        <Pressable style={styles.item} onPress={() => router.push('../../pages/add_addons')}>
-          <Text>Add-Ons</Text>
-        </Pressable>
-        <Pressable style={styles.item} onPress={() => router.push('../../pages/add_sizes')}>
-          <Text style={styles.text}>Sizes</Text>
-        </Pressable>
-      </View>
-
-    
-      <View style={styles.tableContainer}>
-        <View style={styles.tableHeader}>
-          <Text style={styles.headerText}>Category</Text>
-          <Text style={styles.headerText}>Name</Text>
-          <Text style={styles.headerText}>Image</Text>
-          <Text style={styles.headerText}>Price</Text>
-        </View>
+      <ScrollView style={styles.tableContainer}>
 
         {loading ? (
           <ActivityIndicator size="large" color="#e11d48" style={styles.loader} />
@@ -87,15 +77,16 @@ function Products() {
             >
               <Text style={styles.rowText}>{item.category?.name || 'N/A'}</Text>
               <Text style={styles.rowText}>{item.name}</Text>
-              <Image
-                
+              <Image                  
+                source={{ uri: `http://192.168.1.7:8000/storage/${item?.extension}`}}
+                resizeMode="cover"
                 style={styles.productImage}
               />
               <Text style={styles.rowText}>₱{item.price}</Text>
             </Pressable>
           ))
         )}
-      </View>
+      </ScrollView>
 
      
       <Modal visible={isModalVisible} animationType="slide" transparent onRequestClose={closeModal}>
@@ -166,7 +157,7 @@ function Products() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -175,31 +166,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#e11d48',
     padding: 10,
-  },
-  navContainer: {
-    flexDirection: 'row',
-    // flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  item: {
-    width: '45%',
-    margin: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#fff',
-    height: 80,
-    borderRadius: 8,
-  },
-  text: {
-    fontSize: 15,
+    paddingTop:30,
+    paddingBottom:30
   },
   tableContainer: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 20,
+    borderTopLeftRadius:0,
+    borderTopRightRadius:0,
     overflow: 'hidden',
+    
   },
   tableHeader: {
     flexDirection: 'row',
@@ -235,7 +211,7 @@ const styles = StyleSheet.create({
   productImage: {
     width: 50,
     height: 50,
-    borderRadius: 4,
+    borderRadius: 8,
     flex: 1,
     alignSelf: 'center',
   },

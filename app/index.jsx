@@ -1,18 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,  KeyboardAvoidingView, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {login} from '../API/auth'
-import { router } from "expo-router";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, useFocusEffect } from "expo-router";
+import * as SecureStore from 'expo-secure-store';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginMsg, setLoginMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  async function save(key, value) {
+    await SecureStore.setItemAsync(key, value);
+  }
 
   const handleLogin = async() => {
-
     if (!loading){ 
       setLoading(true);
       if (!username || !password) {
@@ -27,19 +31,47 @@ export default function LoginScreen() {
       };
 
       login(body).then(res=>{
-        if (res.ok) router.replace("/dashboard");
+        console.log(res)
+        if (res.ok) {
+          save('user_id', res?.data?.id)
+          save('username', res?.data?.username)
+          save('token', res?.data?.token)
+          router.replace("/dashboard");
+        }
         else setLoginMsg("Invalid username or password.");     
       }).finally(()=>{
         setLoading(false);
         setLoginMsg('');
       })
+
     }
   };
+
+
+  const checkLogin = async () => {
+    if(!checking){
+      setChecking(true)
+      const token = await SecureStore.getItemAsync('token');    
+      console.log(token)
+      if (token) router.replace("/dashboard")
+      setChecking(false);
+    };
+  };
+  
+  useLayoutEffect(()=>{
+    checkLogin();
+  },[])
 
   if (loading) return (
     <View style={styles.loadingContainer}>
       <ActivityIndicator size="large" color="#e11d48" />
       <Text style={styles.loadingText}>Logging in...</Text>
+    </View>
+  )
+  if (checking) return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#e11d48" />
+      <Text style={styles.loadingText}>iz happening...</Text>
     </View>
   )
 

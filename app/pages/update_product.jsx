@@ -54,10 +54,10 @@ export default function UpdateProduct() {
   }, [id]);
 
   const handleUpdateProduct = async () => {
-    if (!name || !price || !selectedCategory) {
-      Alert.alert('Validation Error', 'Please fill in all fields');
-      return;
-    }
+    // if (!name || !price || !selectedCategory) {
+    //   Alert.alert('Validation Error', 'Please fill in all fields');
+    //   return;
+    // }
 
     setLoading(true);
     try {
@@ -87,9 +87,7 @@ export default function UpdateProduct() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Update Product</Text>
-
+    <View style={styles.container}>   
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Name</Text>
         <TextInput
@@ -129,8 +127,8 @@ export default function UpdateProduct() {
 
       <Pressable
         style={[styles.button, loading && { backgroundColor: '#a0c4ff' }]}
-        onPress={handleUpdateProduct}
-        disabled={loading}
+        onPress={()=>handleUpdateProduct()}
+        // disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
@@ -185,11 +183,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   picker: {
-    height: 45,
+    height: 60,
     width: '100%',
   },
   button: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#e11d48',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',

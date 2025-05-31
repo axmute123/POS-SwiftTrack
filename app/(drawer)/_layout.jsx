@@ -4,6 +4,7 @@ import { Drawer } from "expo-router/drawer";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { DrawerContentScrollView, DrawerItemList, DrawerItem } from "@react-navigation/drawer";
+import * as SecureStore from 'expo-secure-store';
 
 const pages = [
   {
@@ -29,6 +30,11 @@ const pages = [
 ];
 
 function CustomDrawerContent(props) {
+  async function removeItem(key) {
+    await SecureStore.deleteItemAsync(key);
+  }
+
+
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
@@ -40,6 +46,9 @@ function CustomDrawerContent(props) {
           label="Logout"
           onPress={() => {
             router.replace("/"); 
+            removeItem('user_id')
+            removeItem('username')
+            removeItem('token')
           }}
           icon={({ color, size }) => (
             <MaterialCommunityIcons name="logout" color={color} size={size} />
@@ -51,6 +60,10 @@ function CustomDrawerContent(props) {
 }
 
 export default function RootLayout() {
+    async function getItem(key) {
+      let result = await SecureStore.getItemAsync(key);
+      return(result);
+    }
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
@@ -78,7 +91,7 @@ export default function RootLayout() {
                             color: "#1e3a8a",
                           }}
                         >
-                          Hi Admin
+                          Hi {getItem('username')}
                         </Text>
                         <Text style={{ fontSize: 12, color: "#555" }}>
                           Welcome to SwiftTrack

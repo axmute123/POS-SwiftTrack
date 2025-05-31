@@ -1,11 +1,11 @@
-import React, { useState, useEffect , useCallback} from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useState , useCallback} from 'react';
+import { View, Text, Dimensions, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { BarChart, PieChart, LineChart } from 'react-native-chart-kit';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { retrieveDailyTransactions, retrieveHourlySales, retrieveRevenue, retrieveTopProducts } from '../../API/transactions';
 
 function Dashboard() {
-
+  const screenWidth = Dimensions.get('window').width - 40;
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [totalSales, setTotalSales] = useState(0);
@@ -21,11 +21,11 @@ function Dashboard() {
   });
 
   const [topProducts, setTopProducts] = useState( [
-    { name: '', population: 0, color: '#ff9e3e', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: '', population: 0, color: '#8fbc8f', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: '', population: 0, color: '#bbaeff', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: '', population: 0, color: '#9fd4c7', legendFontColor: '#7F7F7F', legendFontSize: 15 },
-    { name: '', population: 0, color: '#bc8ff2', legendFontColor: '#7F7F7F', legendFontSize: 15 }
+    { name: '', population: 0, color: '', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+    { name: '', population: 0, color: '', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+    { name: '', population: 0, color: '', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+    { name: '', population: 0, color: '', legendFontColor: '#7F7F7F', legendFontSize: 15 },
+    { name: '', population: 0, color: '', legendFontColor: '#7F7F7F', legendFontSize: 15 },
   ]);
 
   const fetchTransactions= () =>{
@@ -79,7 +79,7 @@ function Dashboard() {
     }
   };
 
-  const colors = ['#ff9e3e', '#8fbc8f', '#bbaeff', '#9fd4c7', '#bc8ff2'];
+  const colors = ['#E1541D', '#AAE11D', '#1DE1B6', '#541DE1', '#E11DAA'];
 
   const fetchTopProducts = () => {
     if (!loading) {
@@ -99,13 +99,15 @@ function Dashboard() {
     }
   }
 
-  useEffect(() => {
-    fetchTransactions();
-    fetchHourlySales();
-    fetchTopProducts();
-    fetchHourlySales();
-    fetchRevenue();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchTransactions();
+      fetchHourlySales();
+      fetchTopProducts();
+      fetchRevenue();
+    }, [])
+  )
+
 
   const onRefresh = useCallback(() => {
     fetchTransactions();
@@ -131,11 +133,10 @@ function Dashboard() {
       nestedScrollEnabled={true}
     >
       <View style={styles.container}>
-
         <Text style={styles.title}>Top Products of the Month</Text>
         <PieChart
           data={topProducts}
-          width={300}
+          width={screenWidth}
           height={180}
           chartConfig={{
             backgroundColor: '#e26a',
@@ -159,7 +160,7 @@ function Dashboard() {
           { hourlySalesData?.labels?.length > 0 ? (
             <LineChart
               data={hourlySalesData}
-              width={325}
+              width={screenWidth}
               height={300}
               chartConfig={{
                 backgroundColor: '#e26a',
@@ -188,8 +189,8 @@ function Dashboard() {
         {barData?.datasets?.[0]?.data?.length > 0 ? (
           <BarChart
             data={barData}
-            width={325}
-            height={200}
+            width={screenWidth}
+            height={300}
             chartConfig={{
               backgroundColor: '#e26a',
               backgroundGradientFrom: '#e11d48',
@@ -206,28 +207,32 @@ function Dashboard() {
           <Text>No data Available.</Text>
         )}
       </View>
-
-    
    
-        <View style={styles.transactions}>
-          <Text style={styles.title}>Transaction History</Text>
-          <ScrollView 
-            style={{ height: 160}} 
-            nestedScrollEnabled={true}
-            contentContainerStyle={{ paddingBottom: 20 }}
-          >
-            {transactions?.map((item, index) => (
-                <View key={index} style={styles.row}>
-                  <Text style={styles.cell}>Time: {item?.updated_at ?? 0}</Text>
-                  <Text style={styles.cell}>Invoice #: {item?.invoice_number || 'N/A'}</Text>
-                  <Text style={styles.cell}>Total: ₱{item?.total ?? 0}</Text>
-                  <Text style={styles.cell}>Cash: ₱{item?.cash ?? 0}</Text>
-                  <Text style={styles.cell}>Change: ₱{item?.change ?? 0}</Text>
-                  <View style={styles.divider}></View>
-                </View>
-              ))}
-          </ScrollView>
-        </View>
+    <View style={styles.transactions}>
+      <Text style={styles.title}>Transaction History</Text>
+      <ScrollView 
+        style={{ height: 160}} 
+        nestedScrollEnabled={true}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        {transactions?.length > 0 ? (
+          transactions.map((item, index) => (
+            <View key={index} style={styles.row}>
+              <Text style={styles.cell}>Time: {item?.updated_at ?? 0}</Text>
+              <Text style={styles.cell}>Invoice #: {item?.invoice_number || 'N/A'}</Text>
+              <Text style={styles.cell}>Total: ₱{item?.total ?? 0}</Text>
+              <Text style={styles.cell}>Cash: ₱{item?.cash ?? 0}</Text>
+              <Text style={styles.cell}>Change: ₱{item?.change ?? 0}</Text>
+              <View style={styles.divider}></View>
+            </View>
+          ))
+        ) : (
+          <Text style={{ textAlign: 'center', marginTop: 60, color: '#999' }}>
+            No data available.
+          </Text>
+        )}
+      </ScrollView>
+    </View>
 
         <View style={[styles.transactions, {height:'auto', marginBottom:35}]}>
           <Text style={styles.title}>Total Sales of the Day</Text>

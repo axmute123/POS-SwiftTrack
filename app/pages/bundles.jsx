@@ -4,7 +4,7 @@ import { storeBundles } from '@/API/bundle';
 import { retrieveProducts } from '@/API/product';
 import { router } from 'expo-router';
 
-export default function AddBundles() {
+export default function Bundles() {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
@@ -86,9 +86,7 @@ export default function AddBundles() {
  
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Add Bundle</Text>
-
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Name</Text>
         <TextInput
@@ -114,7 +112,6 @@ export default function AddBundles() {
                   <Text style={styles.label}>Select Products & Set Quantity</Text>
 
               {initialLoading ? (
-                // Show localized loading spinner for products
                 <View style={styles.productLoadingContainer}>
                   <ActivityIndicator size="small" color="#d92e50" />
                   <Text style={{ marginTop: 8, fontSize: 14, color: '#555' }}>Loading products...</Text>
@@ -124,23 +121,30 @@ export default function AddBundles() {
                   const isSelected = selectedProducts.includes(product.id);
                   return (
                     <View key={product.id} style={styles.checkboxContainer}>
-                      <TouchableOpacity
-                        style={[styles.checkbox, isSelected && styles.checked]}
-                        onPress={() => toggleProductSelection(product.id)}
-                      />
-                      <Text style={styles.checkboxLabel}>
-                        {product.name} - ₱{product.price}
-                      </Text>
-                      {isSelected && (
-                        <TextInput
-                          style={styles.quantityInput}
-                          keyboardType="numeric"
-                          placeholder="Qty"
-                          value={quantities[product.id]}
-                          onChangeText={(value) => handleQuantityChange(product.id, value)}
-                        />
-                      )}
-                    </View>
+                        <TouchableOpacity
+                          style={styles.checkboxTouchable}
+                          onPress={() => toggleProductSelection(product.id)}
+                          activeOpacity={0.7}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                          <View style={[styles.checkbox, isSelected && styles.checked]}>
+                            {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                          </View>
+                          <Text style={styles.checkboxLabel}>
+                            {product.name} - ₱{product.price}
+                          </Text>
+                        </TouchableOpacity>
+
+                        {isSelected && (
+                          <TextInput
+                            style={styles.quantityInput}
+                            keyboardType="numeric"
+                            placeholder="Qty"
+                            value={quantities[product.id]}
+                            onChangeText={(value) => handleQuantityChange(product.id, value)}
+                          />
+                        )}
+                      </View>
                   );
                 })
               ) : (
@@ -197,41 +201,61 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    flexWrap: 'wrap',
-  },
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 10,
+      flexWrap: 'wrap',
+      paddingVertical: 6,
+    },
+
+  checkboxTouchable: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      paddingVertical: 10, 
+    },
+
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#1E90FF',
-    marginRight: 10,
-    backgroundColor: '#fff',
-  },
+      width: 36,
+      height: 36,
+      borderRadius: 4,
+      borderWidth: 2,
+      borderColor: '#e11d48',
+      marginRight: 10,
+      backgroundColor: '#fff',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
   checked: {
-    backgroundColor: '#1E90FF',
-  },
+      backgroundColor: '#e11d48',
+    },
+
+  checkmark: {
+      color: '#fff',
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+
   checkboxLabel: {
-    fontSize: 16,
-    color: '#333',
-    flex: 1,
-  },
+      fontSize: 16,
+      color: '#333',
+      flexShrink: 1,
+    },
+
   quantityInput: {
-    width: 60,
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    marginLeft: 10,
-    backgroundColor: '#fff',
-    textAlign: 'center',
-  },
+      width: 60,
+      height: 40,
+      borderColor: '#ccc',
+      borderWidth: 1,
+      borderRadius: 6,
+      paddingHorizontal: 8,
+      marginLeft: 10,
+      backgroundColor: '#fff',
+      textAlign: 'center',
+    },
   button: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#e11d48',
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 8,

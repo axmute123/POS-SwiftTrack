@@ -1,63 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, Text, ScrollView, ActivityIndicator, RefreshControl} from 'react-native';
 import { retrieveTransactions } from '../../API/transactions';
-import { getpaymentMethod } from '../../API/payment_method';
+import { useFocusEffect } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    Promise.all([retrieveTransactions(), getpaymentMethod()])
-      .then(([transactionsRes, paymentMethodsRes]) => {
-        setTransactions(transactionsRes.data);
-        setPaymentMethods(paymentMethodsRes.data);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  const fetchTransactions = async () =>{
+    if (!loading) {
+      setLoading(true)
+      const token = await SecureStore.getItemAsync('token');  
+      retrieveTransactions(token).then(res=>{
+        if(res?.ok) setTransactions(res?.data);
+        else console.log('error.')
+      }).finally(()=>setLoading(false))
+    }
+  }
 
-  const getPaymentMethodName = (id) => {
-    const method = paymentMethods.find(m => m.id === id);
-    return method ? method.name : 'Unknown';
-  };
+  useFocusEffect(
+    useCallback(() => {
+      fetchTransactions()
+    }, [])
+  )
 
-  if (loading) {
-  return (
-    <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#d92e50" />
-      <Text style={styles.loadingText}>Loading Transactions...</Text>
-    </View>
-  );
-}
+
+  if (loading) return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#d92e50" />
+        <Text style={styles.loadingText}>Loading Transactions...</Text>
+      </View>
+    );
+  
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Transactions</Text>
 
       <View style={[styles.row, styles.header]}>
-        <Text style={[styles.cell, styles.headerText]}>Invoice</Text>
+        <Text style={[styles.cell, styles.headerText]}>Invoice no.</Text>
+        <Text style={[styles.cell, styles.headerText]}>Status</Text>
         <Text style={[styles.cell, styles.headerText]}>Payment Method</Text>
         <Text style={[styles.cell, styles.headerText]}>Total</Text>
         <Text style={[styles.cell, styles.headerText]}>Cash</Text>
         <Text style={[styles.cell, styles.headerText]}>Change</Text>
       </View>
 
-      <ScrollView>
-        {transactions.map((item) => (
+      <ScrollView 
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={fetchTransactions} />
+        }
+      >
+        {transactions?.map((item) => (
           <View key={item.id} style={styles.row}>
-            <Text style={styles.cell}>Invoice #: {item.invoice_number}</Text>
-            <Text style={styles.cell}>
-              Payment Method: {getPaymentMethodName(item.payment_method)}
-            </Text>
-            <Text style={styles.cell}>Total: ₱{item.total}</Text>
-            <Text style={styles.cell}>Cash: ₱{item.cash}</Text>
-            <Text style={styles.cell}>Change: ₱{item.change}</Text>
+            <Text style={styles.cell}>{item.invoice_number}</Text>
+            <Text style={styles.cell}>{item?.status}</Text>
+            <Text style={styles.cell}>{item?.payment_method}</Text>
+            <Text style={styles.cell}> ₱{item?.total}</Text>
+            <Text style={styles.cell}> ₱{item?.cash}</Text>
+            <Text style={styles.cell}> ₱{item?.change}</Text>
           </View>
         ))}
       </ScrollView>
@@ -78,6 +80,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    gap:2,
     borderBottomWidth: 1,
     borderColor: '#ccc',
     paddingVertical: 10,
@@ -85,6 +88,8 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     fontSize: 12,
+    alignItems:'center',
+    justifyContent:'center'
   },
   header: {
     backgroundColor: '#f0f0f0',
